@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>EU RULES SYSTEM | MASTER SECURITY | DRAG & DROP ENABLED</title>
+    <style>
+        :root { --bg: #000; --text: #fff; --card: #111; --border: #333; --red: #ff4444; --blue: #44aaff; --green: #2ecc71; --yellow: #f1c40f; --purple: #a29bfe; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .top-nav-container { position: fixed; top: 15px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-sizing: border-box; }
+        .back-btn-new { cursor: pointer; color: #666; font-size: 14px; text-transform: uppercase; visibility: hidden; transition: 0.3s; }
+        .back-btn-new:hover { color: #fff; }
+        
+        /* Profile UI */
+        .user-profile-zone { display: none; align-items: center; gap: 10px; background: rgba(20,20,20,0.8); padding: 5px 15px; border-radius: 30px; border: 1px solid #222; }
+        .p-avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; object-fit: cover; border: 1px solid #444; }
+        .p-name { font-size: 13px; font-weight: bold; color: #ddd; }
+        
+        /* Rank Badges Style */
+        .rank-badge { font-size: 9px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; margin-left: 5px; }
+        .badge-owner { background: linear-gradient(45deg, #f1c40f, #d35400); color: #000; box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); }
+        .badge-admin { background: var(--blue); color: #000; }
+        .badge-member { background: #333; color: #888; }
+        .badge-custom { background: var(--purple); color: #000; }
+
+        .p-dots { cursor: pointer; color: #666; font-size: 18px; padding: 5px; position: relative; }
+        .p-dots:hover { color: #fff; }
+
+        /* Profile Dropdown Menu */
+        .profile-dropdown { display: none; position: absolute; top: 45px; left: 0; background: #111; border: 1px solid #333; border-radius: 10px; width: 200px; z-index: 5000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .profile-dropdown-item { padding: 12px 15px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .profile-dropdown-item:hover { background: #1a1a1a; color: var(--blue); }
+        .profile-dropdown-item:last-child { border-bottom: none; }
+
+        .switcher-header { font-size: 10px; color: #555; padding: 10px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .acc-slot { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #1a1a1a; }
+        .acc-info { display: flex; align-items: center; gap: 8px; cursor: pointer; flex-grow: 1; }
+        .acc-info img { width: 20px; height: 20px; border-radius: 50%; }
+        .remove-acc { color: var(--red); font-size: 14px; cursor: pointer; padding: 0 5px; }
+
+        .auth-zone { display: flex; gap: 15px; align-items: center; }
+        .status-btn { font-size: 12px; color: #444; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; border: 1px solid #222; padding: 5px 15px; border-radius: 5px; }
+
+        #notif-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #111; color: #fff; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #fff; font-size: 14px; min-width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+        .toast.info { border-color: var(--blue); }
+
+        .admin-stats-trigger { position: fixed; bottom: 15px; left: 15px; background: #111; border: 1px solid #333; color: var(--blue); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; z-index: 1000; transition: 0.3s; }
+        .admin-stats-trigger:hover { background: var(--blue); color: #000; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #050505; border: 1px solid #222; width: 400px; padding: 30px; border-radius: 15px; text-align: center; position: relative; }
+        .input-field { background: #000; color: #fff; border: 1px solid #333; padding: 10px; margin-bottom: 10px; width: 90%; border-radius: 5px; outline: none; }
+
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #222; position: relative; }
+        .dots-btn { cursor: pointer; padding: 0 10px; font-weight: bold; font-size: 20px; color: #666; transition: 0.2s; }
+        .action-menu { display: none; position: absolute; right: 30px; top: 10px; background: #151515; border: 1px solid #333; border-radius: 8px; z-index: 3000; width: 220px; text-align: left; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .action-item { padding: 12px; font-size: 11px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+        .action-item:hover { background: #222; }
+
+        .rule-img { max-width: 100%; border-radius: 10px; margin: 15px 0; border: 1px solid #222; display: block; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        
+        .menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 30px; }
+        h1 { font-size: 50px; letter-spacing: 15px; margin: 0; text-shadow: 0 0 15px rgba(68, 170, 255, 0.3); text-transform: uppercase; }
+        
+        .row-grid { display: grid; grid-template-columns: repeat(2, 260px); gap: 20px; }
+        .btn { width: 260px; height: 150px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border-radius: 15px; transition: 0.4s; text-align: center; }
+        .btn:hover { background: #0a0a0a; color: var(--blue); border-color: var(--blue); transform: translateY(-10px); }
+        .btn-full { grid-column: span 2; width: 540px; height: 90px; }
+
+        .page { display: none; padding: 80px 60px 40px; height: 100vh; box-sizing: border-box; background: #000; position: absolute; top: 0; width: 100%; z-index: 10; text-align: left; overflow-y: auto; }
+        #admin-panel { display: none; background: #050505; border: 1px solid #111; padding: 25px; border-radius: 10px; margin-bottom: 20px; }
+        textarea { width: 100%; background: transparent; color: #fff; border: 1px solid #222; padding: 15px; resize: vertical; min-height: 120px; outline: none; font-size: 18px; margin-bottom: 15px; border-radius: 8px; }
+        
+        .save-btn { background: #fff; color: #000; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 14px; }
+        .cancel-btn { background: #222; color: #fff; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 14px; margin-left: 10px; }
+        
+        .entry-item { margin-bottom: 15px; border-left: 3px solid #222; background: #080808; border-radius: 12px; overflow: hidden; position: relative; transition: transform 0.2s, background-color 0.2s; }
+        /* Drag & Drop Classes */
+        .entry-item.draggable { cursor: grab; }
+        .entry-item.draggable:active { cursor: grabbing; }
+        .entry-item.dragging { opacity: 0.5; background: #1a1a1a; transform: scale(0.98); border: 1px dashed var(--blue); }
+
+        .entry-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #111; }
+        .entry-header span:first-child { cursor: pointer; flex-grow: 1; font-weight: bold; font-size: 18px; }
+        .entry-content { display: none; padding: 25px; border-top: 1px solid #222; color: #888; line-height: 1.8; font-size: 17px; background: #080808; }
+        
+        .header-type { font-size: 22px; color: #ddd; display: block; margin-top: 10px; font-weight: bold; }
+        .dash-type { font-size: 19px; color: #fff; font-weight: 500; display: block; }
+        .word-banned, .word-fg { color: var(--red); font-weight: bold; }
+        .word-allowed { color: var(--green); font-weight: bold; }
+        .bracket-text { color: var(--yellow); }
+        .footer-spacer { height: 500px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px; }
+        .bl-footer { font-size: 40px; font-weight: 900; color: #111; letter-spacing: 20px; text-transform: uppercase; }
+
+        .admin-controls { display: none; padding: 10px 20px; gap: 10px; background: #0a0a0a; border-top: 1px solid #1a1a1a; }
+        .control-btn { font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid; }
+
+        .search-container { margin-bottom: 20px; }
+        .search-input { width: 100%; background: #111; border: 1px solid #222; padding: 12px; border-radius: 8px; color: #fff; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: var(--blue); }
+    </style>
+</head>
+<body>
+
+    <div id="notif-container"></div>
+
+    <div class="top-nav-container">
+        <div class="user-profile-zone" id="profile-ui">
+            <img src="" id="user-avatar" class="p-avatar">
+            <span id="display-nick" class="p-name"></span>
+            <span id="display-badge"></span> 
+            <div class="p-dots" onclick="toggleProfileDropdown(event)">
+                ⋮
+                <div id="profile-dropdown-menu" class="profile-dropdown">
+                    <div class="profile-dropdown-item" onclick="toggleProfileEdit()">Edit Profile</div>
+                    <div class="switcher-header">Switch Accounts (Max 3)</div>
+                    <div id="switch-acc-list"></div>
+                    <div class="profile-dropdown-item" style="color:var(--blue)" onclick="openAuthModal('login')">+ Add Account</div>
+                    <div class="profile-dropdown-item" style="color:var(--red); border-top:1px solid #222" onclick="handleStatusClick()">Logout Current</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-btn-new" id="back-nav-btn" onclick="closePage()">← Back</div>
+        <div class="auth-zone">
+            <div class="status-btn" id="status-display" onclick="handleStatusClick()">Login</div>
+        </div>
+    </div>
+
+    <div id="backup-modal" class="modal">
+        <div class="modal-content" style="width: 450px;">
+            <h2 style="color:var(--blue)">CORE_BACKUP (F7)</h2>
+            <p style="font-size: 12px; color: #666;">Copy this key to save your data or paste a key to restore.</p>
+            <textarea id="backup-key-box" style="width:100%;height:100px;background:#000;color:var(--green);border:1px solid #333;font-family:monospace;font-size:10px;padding:10px;"></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="save-btn" style="flex:1" onclick="generateBackup()">Generate Key</button>
+                <button class="save-btn" style="flex:1; background:var(--green)" onclick="restoreBackup()">Restore Key</button>
+            </div>
+            <button class="cancel-btn" style="width:100%; margin: 10px 0 0 0;" onclick="document.getElementById('backup-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="profile-edit-modal" class="modal">
+        <div class="modal-content">
+            <h2>EDIT PROFILE</h2>
+            <input type="text" id="edit-nick" class="input-field" placeholder="New Nickname">
+            <input type="text" id="edit-avatar" class="input-field" placeholder="New Avatar URL">
+            <button class="save-btn" style="width:100%" onclick="saveProfileChanges()">Update Profile</button>
+            <button class="cancel-btn" style="width:100%; margin: 10px 0 0 0;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <div class="admin-stats-trigger" onclick="toggleStaffStats(true)">ADMINS STATS</div>
+
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="letter-spacing: 3px;">SYSTEM STAFF</h3>
+            <div id="staff-list-content" style="text-align: left; margin: 20px 0; max-height: 200px; overflow-y: auto;"></div>
+            <button class="cancel-btn" style="width: 100%; margin: 0;" onclick="toggleStaffStats(false)">Close</button>
+        </div>
+    </div>
+
+    <div id="rank-creator-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--yellow)">RANK CREATOR (F1)</h2>
+            <input type="text" id="new-rank-name" class="input-field" placeholder="Rank Title">
+            <select id="new-rank-perm" class="input-field" style="background:#000; color:#fff">
+                <option value="all">Full Access (Admin)</option>
+                <option value="Flow Rules">Flow Rules Editor</option>
+                <option value="Style Rules">Style Rules Editor</option>
+                <option value="Flags Rules">Flags Rules Editor</option>
+                <option value="Ranked Rules">Ranked Rules Editor</option>
+                <option value="Global News & Archive">News Editor</option>
+            </select>
+            <button class="save-btn" style="width:100%" onclick="createNewRank()">Register Rank</button>
+            <button class="cancel-btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('rank-creator-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="spy-modal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <h2 style="color:var(--red)">MASTER DATABASE (F2)</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button class="status-btn" onclick="switchSpyTab('users')">Users</button>
+                <button class="status-btn" onclick="switchSpyTab('logs')">System Logs</button>
+            </div>
+            <div id="spy-data" style="text-align:left; max-height:400px; overflow-y:auto;"></div>
+            <button class="save-btn" style="margin-top:15px" onclick="document.getElementById('spy-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="auth-title">LOGIN</h2>
+            <div id="auth-main-fields">
+                <input type="text" id="auth-user" class="input-field" placeholder="Username">
+                <input type="password" id="auth-pass" class="input-field" placeholder="Password">
+            </div>
+            <div id="auth-2fa-fields" style="display:none;">
+                <p style="color:var(--blue); font-size: 14px;">Enter Security Key (2FA)</p>
+                <input type="text" id="auth-2fa-input" class="input-field" placeholder="******">
+            </div>
+            <button class="save-btn" id="confirm-btn" style="width:100%; height:40px; margin-top:10px;" onclick="handleAuth()">Confirm</button>
+            <p style="font-size:12px; color:#666; margin-top:15px;">
+                <span id="toggle-msg">No account?</span> <span id="auth-switch" style="color:var(--blue); cursor:pointer; font-weight:bold;" onclick="switchAuthMode()">Create Account</span>
+            </p>
+            <button class="save-btn" style="background:none; color:#444;" onclick="closeAuthModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="main-menu" class="menu">
+        <h1>EU RULES SYSTEM</h1>
+        <div class="row-grid">
+            <div class="btn" onclick="openPage('Style Rules')">Style Rules</div>
+            <div class="btn" onclick="openPage('Flow Rules')">Flow Rules</div>
+            <div class="btn" onclick="openPage('Ranked Rules')">Ranked Rules</div>
+            <div class="btn" onclick="openPage('Flags Rules')">Flags Rules</div>
+            <div class="btn btn-full" onclick="openPage('Global News & Archive')">Global News & Archive</div>
+        </div>
+    </div>
+
+    <div id="page-view" class="page">
+        <h2 id="page-title" style="font-size: 30px; margin: 0 0 10px 0;"></h2>
+        <div class="search-container">
+            <input type="text" id="rule-search" class="search-input" placeholder="Search rules..." oninput="renderEntries()">
+        </div>
+        <div id="admin-panel">
+            <textarea id="text-input" placeholder="Paste content here (Line 1 will be TITLE)..."></textarea>
+            <div style="display: flex;">
+                <button class="save-btn" onclick="saveData()">Update System +</button>
+                <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </div>
+        <div id="data-list" class="list-container"></div>
+    </div>
+
+    <script>
+        // --- Core Data & 2FA KEY ---
+        const OWNER_KEY = "3220280046650100";
+        // التعديل المطلوب: الـ 2FA الجديد الخاص بك
+        const MASTER_2FA_KEY = "Libyan-dvbz09mohamedahmed201051432202800m46650100y";
+
+        let currentUser = null, authMode = 'login', editIndex = -1, tempUser = null, spyTab = 'users'; 
+        let activeCategory = "";
+
+        let accounts = JSON.parse(localStorage.getItem('sys_accounts')) || [{user: 'rip_cenk', pass: OWNER_KEY, role: 'OWNER', perm: 'all', key2fa: MASTER_2FA_KEY, nick: 'Owner', avatar: ''}];
+        let joudDB = JSON.parse(localStorage.getItem('joud_core')) || { 'Style Rules': [], 'Flow Rules': [], 'Ranked Rules': [], 'Flags Rules': [], 'Global News & Archive': [] };
+        let systemLogs = JSON.parse(localStorage.getItem('sys_logs')) || [];
+        let customRanks = JSON.parse(localStorage.getItem('sys_ranks')) || [{name: 'ADMIN', perm: 'all'}, {name: 'MEMBER', perm: 'none'}];
+        let activeSessions = JSON.parse(localStorage.getItem('sys_sessions')) || [];
+
+        window.onload = function() {
+            const savedSession = localStorage.getItem('last_active_user');
+            if(savedSession) {
+                const acc = accounts.find(a => a.user === savedSession);
+                if(acc) { completeLogin(acc, true); }
+            }
+        };
+
+        // --- Notifications & Logs ---
+        function addLog(action) {
+            const time = new Date().toLocaleTimeString();
+            const user = currentUser ? (currentUser.nick || currentUser.user) : "Guest";
+            systemLogs.unshift({ time, user, action });
+            if(systemLogs.length > 100) systemLogs.pop();
+            localStorage.setItem('sys_logs', JSON.stringify(systemLogs));
+        }
+
+        function notify(msg, type = 'info') {
+            const container = document.getElementById('notif-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // --- UI Badges ---
+        function getBadge(role) {
+            if(role === 'OWNER') return `<span class="rank-badge badge-owner">OWNER</span>`;
+            if(role === 'ADMIN') return `<span class="rank-badge badge-admin">ADMIN</span>`;
+            if(role === 'MEMBER') return `<span class="rank-badge badge-member">MEMBER</span>`;
+            return `<span class="rank-badge badge-custom">${role}</span>`;
+        }
+
+        function hasPerm(cat) {
+            if(!currentUser) return false;
+            if(currentUser.role === 'OWNER' || currentUser.perm === 'all' || currentUser.role === 'ADMIN') return true;
+            return currentUser.perm === cat;
+        }
+
+        function updateProfileUI() {
+            if(currentUser) {
+                document.getElementById('profile-ui').style.display = 'flex';
+                document.getElementById('display-nick').innerText = currentUser.nick || currentUser.user;
+                document.getElementById('display-badge').innerHTML = getBadge(currentUser.role);
+                document.getElementById('user-avatar').src = currentUser.avatar || 'https://i.ibb.co/vz6mP6V/user.png';
+                renderSessions();
+            } else { document.getElementById('profile-ui').style.display = 'none'; }
+        }
+
+        // --- Auth & Switcher ---
+        function handleAuth() {
+            if (tempUser) {
+                const codeInput = document.getElementById('auth-2fa-input').value.trim();
+                // التحقق من الـ 2FA الجديد أو الـ 2FA الخاص بالحساب
+                if(codeInput === MASTER_2FA_KEY || codeInput === tempUser.key2fa) { completeLogin(tempUser); } 
+                else { notify("Security Key Invalid!", "error"); }
+                return;
+            }
+            const user = document.getElementById('auth-user').value.trim().toLowerCase();
+            const pass = document.getElementById('auth-pass').value;
+            if(!user || !pass) return;
+
+            if(authMode === 'create') {
+                if(accounts.some(a => a.user === user)) return notify("Username taken!", "error");
+                accounts.push({user, pass, role: 'MEMBER', perm: 'none', key2fa: null, nick: user, avatar: ''});
+                localStorage.setItem('sys_accounts', JSON.stringify(accounts));
+                notify("Success! Now Login.", "success");
+                openAuthModal('login');
+            } else {
+                const acc = accounts.find(a => a.user === user && a.pass === pass);
+                if(acc) {
+                    if(acc.role === 'OWNER' || acc.key2fa) {
+                        tempUser = acc;
+                        document.getElementById('auth-main-fields').style.display = 'none';
+                        document.getElementById('auth-2fa-fields').style.display = 'block';
+                    } else { completeLogin(acc); }
+                } else notify("Wrong Credentials", "error");
+            }
+        }
+
+        function completeLogin(acc, silent = false) {
+            activeSessions = activeSessions.filter(s => s.user !== acc.user);
+            activeSessions.unshift({user: acc.user, nick: acc.nick, avatar: acc.avatar});
+            if(activeSessions.length > 3) activeSessions.pop();
+            localStorage.setItem('sys_sessions', JSON.stringify(activeSessions));
+            localStorage.setItem('last_active_user', acc.user);
+            currentUser = acc;
+            document.getElementById('status-display').innerText = "Log Out";
+            document.getElementById('status-display').style.color = "var(--red)";
+            updateProfileUI();
+            closeAuthModal();
+            if(!silent) { addLog("Logged in"); notify(`Logged as ${acc.nick || acc.user}`, "success"); }
+            if(activeCategory) openPage(activeCategory);
+        }
+
+        function handleStatusClick() { 
+            if (currentUser) { 
+                if(confirm(`Logout?`)) { 
+                    activeSessions = activeSessions.filter(s => s.user !== currentUser.user);
+                    localStorage.setItem('sys_sessions', JSON.stringify(activeSessions));
+                    localStorage.removeItem('last_active_user');
+                    location.reload(); 
+                } 
+            } else openAuthModal('login');
+        }
+
+        // --- Page Navigation ---
+        function openPage(cat) {
+            activeCategory = cat;
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('page-view').style.display = 'block';
+            document.getElementById('back-nav-btn').style.visibility = 'visible';
+            document.getElementById('page-title').innerText = cat;
+            document.getElementById('admin-panel').style.display = hasPerm(cat) ? 'block' : 'none';
+            renderEntries();
+        }
+
+        function closePage() { 
+            document.getElementById('main-menu').style.display = 'flex'; 
+            document.getElementById('page-view').style.display = 'none'; 
+            document.getElementById('back-nav-btn').style.visibility = 'hidden'; 
+        }
+
+        function saveData() {
+            const input = document.getElementById('text-input');
+            if(!input.value.trim()) return;
+            if(editIndex === -1) joudDB[activeCategory].push(input.value);
+            else { joudDB[activeCategory][editIndex] = input.value; editIndex = -1; }
+            localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            input.value = ""; renderEntries();
+            notify("Database Updated", "success");
+        }
+
+        // --- UI Rendering with DRAG & DROP ---
+        function renderEntries() {
+            const container = document.getElementById('data-list');
+            const searchVal = document.getElementById('rule-search').value.toLowerCase();
+            const data = joudDB[activeCategory] || [];
+            
+            container.innerHTML = "";
+            
+            data.forEach((item, index) => {
+                if(searchVal && !item.toLowerCase().includes(searchVal)) return;
+
+                let lines = item.split('\n');
+                let title = lines[0].startsWith('#') ? lines[0].replace('#', '') : 'Rule #' + (index + 1);
+                const canEdit = hasPerm(activeCategory);
+
+                const entry = document.createElement('div');
+                entry.className = "entry-item draggable";
+                entry.setAttribute('draggable', 'true');
+                entry.setAttribute('data-index', index);
+
+                entry.innerHTML = `
+                    <div class="entry-header">
+                        <span onclick="toggleContent(event, ${index})">${title}</span>
+                        <span style="color:#333; cursor:move">≡</span>
+                    </div>
+                    <div class="entry-content" id="content-${index}">
+                        <div>${lines.map(l => formatLine(l)).join('')}</div>
+                        <div class="admin-controls" style="display: ${canEdit ? 'flex' : 'none'}">
+                            <span class="control-btn" style="color:var(--blue); border-color:var(--blue)" onclick="startEdit(${index})">Edit</span>
+                            <span class="control-btn" style="color:var(--red); border-color:var(--red)" onclick="deleteEntry(${index})">Delete</span>
+                        </div>
+                    </div>
+                `;
+
+                // Drag Events
+                entry.addEventListener('dragstart', (e) => {
+                    const content = document.getElementById(`content-${index}`);
+                    // شرطك: يتغير مكانه فقط لو كان مقفل (Content hidden)
+                    if (content.style.display === 'block') {
+                        e.preventDefault();
+                        notify("Close rule to reorder", "info");
+                        return;
+                    }
+                    entry.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', index);
+                });
+
+                entry.addEventListener('dragend', () => entry.classList.remove('dragging'));
+
+                container.appendChild(entry);
+            });
+
+            // Container Drag Over
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const dragging = document.querySelector('.dragging');
+                if (afterElement == null) container.appendChild(dragging);
+                else container.insertBefore(dragging, afterElement);
+            });
+
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                reorderDB();
+            });
+
+            container.innerHTML += `<div class="footer-spacer"><div class="bl-footer">Blue Lock</div></div>`;
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.entry-item:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+                else return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function reorderDB() {
+            const newOrder = [...document.querySelectorAll('.entry-item')].map(el => {
+                return joudDB[activeCategory][parseInt(el.getAttribute('data-index'))];
+            });
+            joudDB[activeCategory] = newOrder;
+            localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            // لا نسوي Render هنا فوراً عشان ما يخرب السحب، البيانات انحفظت خلاص
+        }
+
+        function formatLine(line) {
+            if (!line.trim()) return '<br>';
+            const isImage = line.match(/\.(jpeg|jpg|gif|png|webp)/i) || line.includes('ibb.co');
+            if(isImage) return `<img src="${line.trim()}" class="rule-img" onerror="this.style.display='none'">`;
+            let res = line.replace(/\((.*?)\)/g, '<span class="bracket-text">($1)</span>')
+                          .replace(/\bBanned\b/gi, '<span class="word-banned">Banned</span>')
+                          .replace(/\bFG\b/gi, '<span class="word-fg">FG</span>')
+                          .replace(/\bAllowed\b/gi, '<span class="word-allowed">Allowed</span>');
+            if (line.includes(':')) return `<span class="header-type">${res}</span>`;
+            if (line.trim().startsWith('-')) return `<span class="dash-type">${res}</span>`;
+            return `<div>${res}</div>`;
+        }
+
+        function toggleContent(e, id) { 
+            e.stopPropagation();
+            const c = document.getElementById('content-' + id); 
+            const isOpening = c.style.display !== 'block';
+            c.style.display = isOpening ? 'block' : 'none'; 
+        }
+
+        // --- Other Logic (Edit, Delete, Backups) ---
+        function startEdit(idx) { 
+            editIndex = idx; 
+            document.getElementById('text-input').value = joudDB[activeCategory][idx]; 
+            document.getElementById('page-view').scrollTo({top: 0, behavior: 'smooth'}); 
+        }
+
+        function deleteEntry(idx) { 
+            if(!confirm("Delete this?")) return; 
+            joudDB[activeCategory].splice(idx, 1); 
+            localStorage.setItem('joud_core', JSON.stringify(joudDB)); 
+            renderEntries(); 
+        }
+
+        function cancelEdit() { editIndex = -1; document.getElementById('text-input').value = ""; }
+
+        function generateBackup() {
+            const data = { db: joudDB, accs: accounts, ranks: customRanks };
+            const key = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            document.getElementById('backup-key-box').value = key;
+            notify("Core Backup Generated", "success");
+        }
+
+        function restoreBackup() {
+            const key = document.getElementById('backup-key-box').value.trim();
+            try {
+                const decoded = JSON.parse(decodeURIComponent(escape(atob(key))));
+                if(confirm("Overwrite current data?")) {
+                    localStorage.setItem('joud_core', JSON.stringify(decoded.db));
+                    localStorage.setItem('sys_accounts', JSON.stringify(decoded.accs));
+                    location.reload();
+                }
+            } catch(e) { notify("Invalid Key", "error"); }
+        }
+
+        // Shortcuts
+        window.addEventListener('keydown', e => { 
+            if(currentUser?.role === "OWNER") {
+                if(e.key === "F1") { e.preventDefault(); document.getElementById('rank-creator-modal').style.display = 'flex'; }
+                if(e.key === "F2") { e.preventDefault(); document.getElementById('spy-modal').style.display = 'flex'; renderSpyPanel(); }
+                if(e.key === "F7") { e.preventDefault(); document.getElementById('backup-modal').style.display = 'flex'; generateBackup(); }
+            }
+        });
+
+        // Spy Panel Functions
+        function switchSpyTab(tab) { spyTab = tab; renderSpyPanel(); }
+        function renderSpyPanel() {
+            const container = document.getElementById('spy-data');
+            if(spyTab === 'users') {
+                container.innerHTML = accounts.map((a, i) => `<div class="user-row"><div><span>${a.user} ${getBadge(a.role)}</span><div style="font-size:10px; color:#444">Pass: ${a.pass}</div></div><div class="dots-btn" onclick="toggleActionMenu(${i})">⋮<div id="menu-${i}" class="action-menu">${customRanks.map(r => `<div class="action-item" onclick="setRoleEx(${i}, '${r.name}', '${r.perm}')">Set ${r.name}</div>`).join('')}${a.role !== 'OWNER' ? `<div class="action-item" style="color:red" onclick="deleteAcc(${i})">Delete</div>` : ''}</div></div></div>`).join('');
+            } else { container.innerHTML = systemLogs.map(log => `<div style="font-size:11px; padding:5px; border-bottom:1px solid #111"><span style="color:var(--blue)">[${log.time}]</span> <b>${log.user}</b>: ${log.action}</div>`).join(''); }
+        }
+        function toggleActionMenu(i) { const m = document.getElementById(`menu-${i}`); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+        function setRoleEx(i, role, perm) { if(accounts[i].role === 'OWNER') return; accounts[i].role = role; accounts[i].perm = perm; localStorage.setItem('sys_accounts', JSON.stringify(accounts)); renderSpyPanel(); notify("Role Set", "success"); }
+        function deleteAcc(i) { if(accounts[i].role === 'OWNER') return; accounts.splice(i, 1); localStorage.setItem('sys_accounts', JSON.stringify(accounts)); renderSpyPanel(); }
+
+        // General UI toggle
+        function toggleProfileDropdown(e) { e.stopPropagation(); const m = document.getElementById('profile-dropdown-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+        document.addEventListener('click', () => { if(document.getElementById('profile-dropdown-menu')) document.getElementById('profile-dropdown-menu').style.display = 'none'; });
+        function openAuthModal(m) { authMode = m; tempUser = null; document.getElementById('auth-modal').style.display = 'flex'; document.getElementById('auth-main-fields').style.display = 'block'; document.getElementById('auth-2fa-fields').style.display = 'none'; }
+        function closeAuthModal() { document.getElementById('auth-modal').style.display = 'none'; }
+        function switchAuthMode() { openAuthModal(authMode === 'login' ? 'create' : 'login'); }
+        function toggleStaffStats(s) { document.getElementById('stats-modal').style.display = s ? 'flex' : 'none'; if(s) { document.getElementById('staff-list-content').innerHTML = accounts.filter(a => a.role !== 'MEMBER').map(a => `<div style="padding:10px; border-bottom:1px solid #111; display:flex; justify-content:space-between;"><span>${a.nick || a.user}</span>${getBadge(a.role)}</div>`).join(''); } }
+        function saveProfileChanges() { const n = document.getElementById('edit-nick').value; const a = document.getElementById('edit-avatar').value; if(n) currentUser.nick = n; if(a) currentUser.avatar = a; localStorage.setItem('sys_accounts', JSON.stringify(accounts)); updateProfileUI(); document.getElementById('profile-edit-modal').style.display='none'; }
+        function toggleProfileEdit() { document.getElementById('profile-edit-modal').style.display='flex'; }
+        function createNewRank() { const n = document.getElementById('new-rank-name').value; const p = document.getElementById('new-rank-perm').value; if(n) { customRanks.push({name: n, perm: p}); localStorage.setItem('sys_ranks', JSON.stringify(customRanks)); document.getElementById('rank-creator-modal').style.display = 'none'; } }
+    </script>
+</body>
+</html>
