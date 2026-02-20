@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>EU RULES SYSTEM | MASTER SECURITY | AUTO-INJECTED</title>
+    <style>
+        :root { --bg: #000; --text: #fff; --card: #111; --border: #333; --red: #ff4444; --blue: #44aaff; --green: #2ecc71; --yellow: #f1c40f; --purple: #a29bfe; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .top-nav-container { position: fixed; top: 15px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-sizing: border-box; }
+        .back-btn-new { cursor: pointer; color: #666; font-size: 14px; text-transform: uppercase; visibility: hidden; transition: 0.3s; }
+        .back-btn-new:hover { color: #fff; }
+        
+        /* Profile UI */
+        .user-profile-zone { display: none; align-items: center; gap: 10px; background: rgba(20,20,20,0.8); padding: 5px 15px; border-radius: 30px; border: 1px solid #222; }
+        .p-avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; object-fit: cover; border: 1px solid #444; }
+        .p-name { font-size: 13px; font-weight: bold; color: #ddd; }
+        
+        /* Rank Badges Style */
+        .rank-badge { font-size: 9px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; margin-left: 5px; }
+        .badge-owner { background: linear-gradient(45deg, #f1c40f, #d35400); color: #000; box-shadow: 0 0 10px rgba(241, 196, 15, 0.4); }
+        .badge-admin { background: var(--blue); color: #000; }
+        .badge-member { background: #333; color: #888; }
+        .badge-custom { background: var(--purple); color: #000; }
+
+        .p-dots { cursor: pointer; color: #666; font-size: 18px; padding: 5px; position: relative; }
+        .p-dots:hover { color: #fff; }
+
+        /* Profile Dropdown Menu */
+        .profile-dropdown { display: none; position: absolute; top: 45px; left: 0; background: #111; border: 1px solid #333; border-radius: 10px; width: 220px; z-index: 5000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .profile-dropdown-item { padding: 12px 15px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .profile-dropdown-item:hover { background: #1a1a1a; color: var(--blue); }
+        .profile-dropdown-item:last-child { border-bottom: none; }
+
+        .switcher-header { font-size: 10px; color: #555; padding: 10px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .acc-slot { display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #1a1a1a; font-size: 11px; }
+        .acc-info { display: flex; align-items: center; gap: 8px; cursor: pointer; flex-grow: 1; color: #ccc; }
+        .acc-info:hover { color: #fff; }
+        .acc-info img { width: 18px; height: 18px; border-radius: 50%; background: #222; }
+        .remove-acc { color: var(--red); font-size: 14px; cursor: pointer; padding: 0 5px; opacity: 0.5; }
+        .remove-acc:hover { opacity: 1; }
+
+        .auth-zone { display: flex; gap: 15px; align-items: center; }
+        .status-btn { font-size: 12px; color: #444; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; border: 1px solid #222; padding: 5px 15px; border-radius: 5px; }
+
+        #notif-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #111; color: #fff; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #fff; font-size: 14px; min-width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+        .toast.info { border-color: var(--blue); }
+
+        .admin-stats-trigger { position: fixed; bottom: 15px; left: 15px; background: #111; border: 1px solid #333; color: var(--blue); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; z-index: 1000; transition: 0.3s; }
+        .admin-stats-trigger:hover { background: var(--blue); color: #000; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #050505; border: 1px solid #222; width: 400px; padding: 30px; border-radius: 15px; text-align: center; position: relative; }
+        .input-field { background: #000; color: #fff; border: 1px solid #333; padding: 10px; margin-bottom: 10px; width: 90%; border-radius: 5px; outline: none; }
+
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #222; position: relative; }
+        .dots-btn { cursor: pointer; padding: 0 10px; font-weight: bold; font-size: 20px; color: #666; transition: 0.2s; }
+        .action-menu { display: none; position: absolute; right: 30px; top: 10px; background: #151515; border: 1px solid #333; border-radius: 8px; z-index: 3000; width: 220px; text-align: left; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .action-item { padding: 12px; font-size: 11px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+        .action-item:hover { background: #222; }
+
+        .rule-img { max-width: 100%; border-radius: 10px; margin: 15px 0; border: 1px solid #222; display: block; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        
+        .menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 30px; }
+        h1 { font-size: 50px; letter-spacing: 15px; margin: 0; text-shadow: 0 0 15px rgba(68, 170, 255, 0.3); text-transform: uppercase; }
+        
+        .row-grid { display: grid; grid-template-columns: repeat(2, 260px); gap: 20px; }
+        .btn { width: 260px; height: 150px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border-radius: 15px; transition: 0.4s; text-align: center; }
+        .btn:hover { background: #0a0a0a; color: var(--blue); border-color: var(--blue); transform: translateY(-10px); }
+        .btn-full { grid-column: span 2; width: 540px; height: 90px; }
+
+        .page { display: none; padding: 80px 60px 40px; height: 100vh; box-sizing: border-box; background: #000; position: absolute; top: 0; width: 100%; z-index: 10; text-align: left; overflow-y: auto; }
+        #admin-panel { display: none; background: #050505; border: 1px solid #111; padding: 25px; border-radius: 10px; margin-bottom: 20px; }
+        textarea { width: 100%; background: transparent; color: #fff; border: 1px solid #222; padding: 15px; resize: vertical; min-height: 120px; outline: none; font-size: 18px; margin-bottom: 15px; border-radius: 8px; }
+        
+        .save-btn { background: #fff; color: #000; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 14px; }
+        .cancel-btn { background: #222; color: #fff; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; font-size: 14px; margin-left: 10px; }
+        
+        .entry-item { margin-bottom: 15px; border-left: 3px solid #222; background: #080808; border-radius: 12px; overflow: hidden; position: relative; transition: transform 0.2s, background-color 0.2s; }
+        .entry-item.can-drag { cursor: grab !important; border-left: 3px solid var(--blue); background: #111; }
+        .entry-item.dragging { opacity: 0.5; background: #1a1a1a; transform: scale(0.98); border: 1px dashed var(--blue); }
+
+        .entry-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #111; }
+        .entry-header span:first-child { cursor: pointer; flex-grow: 1; font-weight: bold; font-size: 18px; }
+        .entry-content { display: none; padding: 25px; border-top: 1px solid #222; color: #888; line-height: 1.8; font-size: 17px; background: #080808; }
+        
+        .header-type { font-size: 22px; color: #ddd; display: block; margin-top: 10px; font-weight: bold; }
+        .dash-type { font-size: 19px; color: #fff; font-weight: 500; display: block; }
+        .word-banned, .word-fg { color: var(--red); font-weight: bold; }
+        .word-allowed { color: var(--green); font-weight: bold; }
+        .bracket-text { color: var(--yellow); }
+        .footer-spacer { height: 500px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px; }
+        .bl-footer { font-size: 40px; font-weight: 900; color: #111; letter-spacing: 20px; text-transform: uppercase; }
+
+        .admin-controls { display: none; padding: 10px 20px; gap: 10px; background: #0a0a0a; border-top: 1px solid #1a1a1a; }
+        .control-btn { font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid; }
+
+        .search-container { margin-bottom: 20px; }
+        .search-input { width: 100%; background: #111; border: 1px solid #222; padding: 12px; border-radius: 8px; color: #fff; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: var(--blue); }
+
+        #reorder-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--blue); box-sizing: border-box; }
+        
+        .code-trigger { position: fixed; bottom: 15px; right: 15px; background: #111; border: 1px solid #333; color: var(--green); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; z-index: 1000; transition: 0.3s; letter-spacing: 2px; }
+        .code-trigger:hover { background: var(--green); color: #000; }
+    </style>
+</head>
+<body>
+
+    <div id="notif-container"></div>
+
+    <div id="reorder-overlay">
+        <h1 style="color:var(--blue); margin-bottom: 10px;">REORDER MODE ACTIVE</h1>
+        <p style="color:#666; margin-bottom: 20px;">Drag rules to sort them. Press F4 to Save & Exit.</p>
+        <div id="reorder-list" style="width: 80%; max-height: 70vh; overflow-y: auto; background: #050505; padding: 20px; border-radius: 10px; border: 1px solid #222;"></div>
+    </div>
+
+    <div class="top-nav-container">
+        <div class="user-profile-zone" id="profile-ui">
+            <img src="" id="user-avatar" class="p-avatar">
+            <span id="display-nick" class="p-name"></span>
+            <span id="display-badge"></span> 
+            <div class="p-dots" onclick="toggleProfileDropdown(event)">
+                ⋮
+                <div id="profile-dropdown-menu" class="profile-dropdown">
+                    <div class="profile-dropdown-item" onclick="toggleProfileEdit()">Edit Profile</div>
+                    <div class="switcher-header">Switch Accounts (Max 3)</div>
+                    <div id="switch-acc-list"></div>
+                    <div class="profile-dropdown-item" style="color:var(--blue)" onclick="openAuthModal('login')">+ Add Account</div>
+                    <div class="profile-dropdown-item" style="color:var(--red); border-top:1px solid #222" onclick="handleStatusClick()">Logout Current</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-btn-new" id="back-nav-btn" onclick="closePage()">← Back</div>
+        <div class="auth-zone">
+            <div class="status-btn" id="status-display" onclick="handleStatusClick()">Login</div>
+        </div>
+    </div>
+
+    <div id="code-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--green)">SYSTEM UPDATE CODE</h2>
+            <p style="font-size: 12px; color: #666;">Get latest codes from our Discord:</p>
+            <a href="https://ptb.discord.com/channels/1285976303283208284/1474385251219411080" target="_blank" style="color:var(--blue); text-decoration: none; font-weight: bold; display: block; margin-bottom: 15px;">JOIN DISCORD SERVER</a>
+            <input type="text" id="system-code-input" class="input-field" placeholder="Paste code here...">
+            <button class="save-btn" style="width:100%; background:var(--green); color:#000;" onclick="applySystemCode()">Update System</button>
+            <button class="cancel-btn" style="width:100%; margin: 10px 0 0 0;" onclick="document.getElementById('code-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="backup-modal" class="modal">
+        <div class="modal-content" style="width: 450px;">
+            <h2 style="color:var(--blue)">CORE_BACKUP (F7)</h2>
+            <textarea id="backup-key-box" style="width:100%;height:100px;background:#000;color:var(--green);border:1px solid #333;font-family:monospace;font-size:10px;padding:10px;"></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="save-btn" style="flex:1" onclick="generateBackup()">Generate Key</button>
+                <button class="save-btn" style="flex:1; background:var(--green)" onclick="restoreBackup()">Restore Key</button>
+            </div>
+            <button class="cancel-btn" style="width:100%; margin: 10px 0 0 0;" onclick="document.getElementById('backup-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="profile-edit-modal" class="modal">
+        <div class="modal-content">
+            <h2>EDIT PROFILE</h2>
+            <input type="text" id="edit-nick" class="input-field" placeholder="New Nickname">
+            <input type="text" id="edit-avatar" class="input-field" placeholder="New Avatar URL">
+            <button class="save-btn" style="width:100%" onclick="saveProfileChanges()">Update Profile</button>
+            <button class="cancel-btn" style="width:100%; margin: 10px 0 0 0;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="letter-spacing: 3px;">SYSTEM STAFF</h3>
+            <div id="staff-list-content" style="text-align: left; margin: 20px 0; max-height: 200px; overflow-y: auto;"></div>
+            <button class="cancel-btn" style="width: 100%; margin: 0;" onclick="toggleStaffStats(false)">Close</button>
+        </div>
+    </div>
+
+    <div id="rank-creator-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--yellow)">RANK CREATOR (F1)</h2>
+            <input type="text" id="new-rank-name" class="input-field" placeholder="Rank Title">
+            <select id="new-rank-perm" class="input-field" style="background:#000; color:#fff">
+                <option value="all">Full Access (Admin)</option>
+                <option value="Flow Rules">Flow Rules Editor</option>
+                <option value="Style Rules">Style Rules Editor</option>
+                <option value="Flags Rules">Flags Rules Editor</option>
+                <option value="Ranked Rules">Ranked Rules Editor</option>
+                <option value="Global News & Archive">News Editor</option>
+            </select>
+            <button class="save-btn" style="width:100%" onclick="createNewRank()">Register Rank</button>
+            <button class="cancel-btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('rank-creator-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="spy-modal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <h2 style="color:var(--red)">MASTER DATABASE (F2)</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button class="status-btn" onclick="switchSpyTab('users')">Users</button>
+                <button class="status-btn" onclick="switchSpyTab('logs')">System Logs</button>
+            </div>
+            <div id="spy-data" style="text-align:left; max-height:400px; overflow-y:auto;"></div>
+            <button class="save-btn" style="margin-top:15px" onclick="document.getElementById('spy-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="auth-title">LOGIN</h2>
+            <div id="auth-main-fields">
+                <input type="text" id="auth-user" class="input-field" placeholder="Username">
+                <input type="password" id="auth-pass" class="input-field" placeholder="Password">
+            </div>
+            <div id="auth-2fa-fields" style="display:none;">
+                <p style="color:var(--blue); font-size: 14px;">Enter Security Key (2FA)</p>
+                <input type="text" id="auth-2fa-input" class="input-field" placeholder="******">
+            </div>
+            <button class="save-btn" id="confirm-btn" style="width:100%; height:40px; margin-top:10px;" onclick="handleAuth()">Confirm</button>
+            <p style="font-size:12px; color:#666; margin-top:15px;">
+                <span id="toggle-msg">No account?</span> <span id="auth-switch" style="color:var(--blue); cursor:pointer; font-weight:bold;" onclick="switchAuthMode()">Create Account</span>
+            </p>
+            <button class="save-btn" style="background:none; color:#444;" onclick="closeAuthModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="main-menu" class="menu">
+        <h1>EU RULES SYSTEM</h1>
+        <div class="row-grid">
+            <div class="btn" onclick="openPage('Style Rules')">Style Rules</div>
+            <div class="btn" onclick="openPage('Flow Rules')">Flow Rules</div>
+            <div class="btn" onclick="openPage('Ranked Rules')">Ranked Rules</div>
+            <div class="btn" onclick="openPage('Flags Rules')">Flags Rules</div>
+            <div class="btn btn-full" onclick="openPage('Global News & Archive')">Global News & Archive</div>
+        </div>
+    </div>
+
+    <div id="page-view" class="page">
+        <h2 id="page-title" style="font-size: 30px; margin: 0 0 10px 0;"></h2>
+        <div class="search-container">
+            <input type="text" id="rule-search" class="search-input" placeholder="Search rules..." oninput="renderEntries()">
+        </div>
+        <div id="admin-panel">
+            <textarea id="text-input" placeholder="Paste content here (Line 1 will be TITLE)..."></textarea>
+            <div style="display: flex;">
+                <button class="save-btn" onclick="saveData()">Update System +</button>
+                <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </div>
+        <div id="data-list" class="list-container"></div>
+    </div>
+
+    <div class="admin-stats-trigger" onclick="toggleStaffStats(true)">ADMINS STATS</div>
+    
+    <div class="code-trigger" onclick="document.getElementById('code-modal').style.display='flex'">CODE</div>
+
+    <script>
+        /**
+         * System Bootstrap Logic
+         * Handles local data injection and initial state recovery.
+         */
+        (function injectSystem() {
+            // Master Key contains the core database and owner credentials
+            const masterKey = "eyJkYiI6eyJTdHlsZSBSdWxlcyI6WyIjIExpbWl0ZWQgU3R5bGVzXG5cbktyYW1wb3MgQmFyb3UgQWxsb3dlZDpcbi1DcmFzaCBTdGVhbDsgQWxsb3dlZCBjb21wbGV0ZWx5LCAgaWxsZWdhbCB0byB1c2UgaW50byBvciBpbnNpZGUgeW91ciBvd24gYm94ICggY291bnQgYXMgYSBkZWZlbnNpdmUgbW92ZSksIGlmIHVzZWQgaW50byBvciBpbnNpZGUgdXIgb3duIGJveCwgcmVzdWx0cyBpbnRvIGEgRkcgaWYgaXQgc3RvcHBlZCBhIGdvYWwsIGJhbm5lZCB0byBzdGVhbCAtbW92ZSBmcm9tIG9wcG9uZW50IGJveFxuLUJsaXp6YXJkIEZhbmcgU2hvdDsgQWxsb3dlZCBhbnl3aGVyZSBleGNlcHQgaW5ib3guICBBbGxvd2VkIHdpdGggbWV0YXZpc2lvbiAvIHByZWRhdG9yIGthcmFtcHVzIGZyb20gc2Vjb25kIGxpbmUgLiAob2cga2Fpc2VyIHJhbmdlKVxuLUtyYW1wdXMgQ2hvcCBEcmliYmxlOyBiYW5uZWQgaW50by9pbiBib3ggY2Fubm90IHVzZSBzaG90IGFmdGVyIHVudGlsIHlvdSBsb3NlIHRoZSBiYWxsXG4tUHJlZGF0b3IgS3JhbXB1cy9NZXRhdmlzaW9uO0Nhbm5vdCB1c2Ugc3BlZWQgaW5jcmVhc2VkIGZsb3dzIHdpdGggaXQuIENhbm5vdCB1c2UgYmxpenphcmQgZmFuZyBzaG90IHdpdGggaXRcbi1pZiB1IGFpa3UgZm9yY2UgZGVmZW5zZSBrcmFtcHVzIGJhcm91IGFuZCBpdCBidWdzIGluIGdvYWwgYW55d2F5cyB0aGVuIGl0cyBhIGZyZWVnb2FsXG5cbkVsZiBFbXBlcm9yIEFsbG93ZWQ6XG4tRWxmIEltcGFjdDsgYWxsb3dlZCBhbnl3aGVyZSBleGNlcHQgaW5zaWRlIG9mIHRoZSBvcHBvbmVudOKAmXMgYm94XG4tSGVscGVyIERyaWJibGU7IEJBTk5FRCBpbnRvIGJveCwgYWxsb3dlZCB0byBiZSB1c2VkIHR3aWNlIC1FTEYgRU1QRVJPUiBWT0xMRVk7IGlzIGJhbm5lZFxuLUVsZiBJbXBhY3Qgd2hpbGUgcHJvZGlneSBpcyBvbiBpcyBiYW5uZWRcblxuU29iemVybyBMb2tpIEFsbG93ZWQ6XG4tfEFTIENNfFxuLUFpciB0cmFwIGluZiBvdCAocmVvIGdldHMgNCsxIGNhbW9zKSBhbmQgZHRyYXAgbmFnaSBiYW5uZWQgd2l0aCBpdFxuLUFpciB0cmFwIGJhbm5lZCB0byBnbG9iYWwgdHJhcFxuLUFpciB0cmFwIG5vdCBhbGxvd2VkIHRvIG1ha2UgTTFzIGdob3N0IG9uIGNoaWdpcmkgc3BlZWRzdGVyICh3aWxsIGNvdW50IGFzIHJiKVxuLUFpciB0cmFwIGFsbG93ZWQgdG8gbWFrZSBNMXMgZ2hvc3QgaW4gb3RoZXIgY2lyY3Vtc3RhbmNlcyAoY291bnRzIGFzIGEgdXNhZ2UpXG4tTmVsIFJlbyBhbGxvd2VkIHdpdGggaXQgYnV0IGlmIGJvdGggb24gdGhlIHBpdGNoIHdpdGggTG9raSBjbSB0aGVuIG5vIG90aGVyIG1ham9yXG5cblNhbnRhIExhdmluaG91IEFsbG93ZWQ6XG4tV1JBUFBFRCBEUklCQkw7IGJhbm5lZCBpbiBhbGxvd2VkIGludG8gYm94LSBcbi0gUFJFU0VOVCBTVFJJS0U7IGFsbG93ZWQgYW55d2hlcmUgYnV0IGJveCByZWFzb247IG5vdCBhcyBmYXN0IGFzIGtyYW1wdXMgYW5kIEthaSArIGNhbid0IGdyYXNzY3V0ICsgY2FuJ3QgYm91bmNlICsgbm8gaWZyYW1lcyBhZnRlciBzbyBVIGNhbiBnb2FsdGVuZCBpdC1cbi1TTEVJR0ggUklERTsgbm8gcmVzdHJpY3Rpb25zIChidW5zKVxuLUNIUklTVE1BUyBTVEFNUEVERTsgQWxsb3dlZCBhcyBkcmliYmxlIGJhbm5lZCBpbi9pbnRvIGJveFxuXG5EZW1vbiBTaGlkb3UgQWxsb3dlZDpcbi1EZW1vbmljIGRyaWJibGUgYWxsb3dlZCB0byBnbyBpbnRvIGJveCBhbmQgYWxsb3dlZCB0byB1c2UgaW5ib3hcbi1EZW1vbmljIHNob3QgYWxsb3dlZCBldmVyeXdoZXJlIGV4Y2VwdCBib3hcbi1EZW1vbmljIHNob3QgYWxsb3dlZCBldmVyeXdoZXJlIGV4Y2VwdCBib3hcbi1EZW1vbmljIG92ZXJoZWFkIEtpY2sgYmFubmVkIGluYm94IGFsbG93ZWQgZXZlcnl3aGVyZSBlbHNlXG4tRGVtb25pYyBIZWFkZXIgYWxsb3dlZCBldmVyeXdoZXJlIGV4Y2VwdCBib3hcbi1CbG9vZGx1c3QgQWxsb3dlZCBvbmx5IGluIHlvdXIgaGFsZiB3aXRoIGluZmluaXRlIHVzZXNcbi1DYW4gdXNlIGl0IHRvIGdldCBvcGVuIGluIG9mZmVuc2l2ZSBzaWRlXG4tSW5mZXJubyBEcmFnb24gRHJpdmUgb25seSBhbGxvd2VkIHRvIGJlIHVzZWQgYXMgYSBzdGVhbCwgdXNpbmcgaXQgYXMgYSBzaG90IGlzIElMTEVHQUxcblxuUmVhcGVyIFNhZSBBbGxvd2VkOlxuLXNjeXRoZSBzbGFtIG9ubHkgYWxsb3dlZCAzIHRpbWVzIHBlciBsZWcsIG1pc3NlZCBzY3l0aGUgc2xhbXMgd2lsbCBiZSBjb3VudGVkICsxIG90XG4tcGVyZmVjdCBwYXNzIHVzYWdlIElORklOSVRFICwgb25seSBhbGxvd2VkIHRvIHBsYXllciBvbiB0aGUgc2FtZSBoYWxmIG9mIHRoZSBmaWVsZFxuXG5Ta2VsZXRvbiBOYWdpIEFsbG93ZWQ6XG4tU2tlbGV0b24gdHJhcDsgbm90IGFsbG93ZWQgd2l0aCBuYWdpXG4tUmVvIGNhbnQgY2copyB1bmxlc3Mgbm8gbmFnaSBpbiB0ZWFtXG4tS1VMTCBST1VMRVRURTsgYmVoaW5kIHNlbWkgY2lyY2xlIHNhbWUgYXMgZGVtb25pYyBoZWFkZXJcblxuQmxvb2Rtb24gUmluIEFsbG93ZWQ6XG4tQ3Jlc2NlbnQgU2hvdCBpcyBCQU5ORUQgaW5ib3hcbi1MdW5hciBBeGlzIGFsbG93ZWQgM3ggcGVyIGxlZ1xuLUJsb29kIGRyaWJibGUgQU5EIENyb3cgaWxsdXNpb24gYXJlIGJvdGggQUxMT1dFRCBpbiBhbmQgaW50byBib3hcblxuUGhhbnRvbSBJc2FnaSBBbGxvd2VkOlxuLU5vIHJ1bGVzIGV4Y2VwdCBzaG90IHN0YWNrIGlzYWdpIHNob3QgaXMgYmFubmVkXG5cbkZpcmV3b3JrIEJhY2hpcmEgQWxsb3dlZDpcbi1FeHBsb3NpdmUgZHJpYmJsaW5nIChDKSBiYW5uZWQgaW4gYm94IGFsbG93ZWQgaW50byBib3hcbi1GcmVha3kgc2hvdCAoZmxhc2h5IHNob3QpOiBBbGxvd2VkIGFueXdoZXJlIGJ1dCBpbmJveCBcbi1Sb2NrZXQgcGFzcyAoVikgYmFubmVkIGluL2ludG8gYm94IGl0J3Mga2luZGEgYnVuc1xuLUlsbHVzaXZlIEZpcmV3b3JrcyAoQikgdW5yZXN0cmlzdGVkXG5cbkdpbmVyYnJlYWQgQ2hhcmxlc3MgQWxsb3dlZDogXG4tR2luZ2VyYnJlYWQgZHJpYmJsZTsgQkFOTkVEIGluL2ludG8gYm94XG4tQ29va2llIENyb3NzIGFuZCBHaW5nZXJicmVhZCBDYW5ub247IEJBTk5FRCBpbmJveCIsImFjY3MiOlt7InVzZXIiOiJyaXBfY2VuayIsInBhc3MiOiIzMjIwMjgwMDQ2NjUwMTAwIiwicm9sZSI6Ik9XTkVSIiwicGVybSI6ImFsbCIsImtleTJmYSI6IkxpYnlhbi1kdmJ6MDltb2hhbWVkYWhtZWQyMDEwNTE0MzIyMDI4MDBtNDY2NTAxMDB5IiwibmljayI6Ik93bmVyIiwiYXZhdGFyIjoiIn1dLCJyYW5rcyI6W3sibmFtZSI6IkFETUlOIiwicGVybSI6ImFsbCJ9LHsibmFtZSI6Ik1FTUJFUiIsInBlcm0iOiJub25lIn1dfQ==";
+            try {
+                const decoded = JSON.parse(decodeURIComponent(escape(atob(masterKey))));
+                if (!localStorage.getItem('joud_core')) localStorage.setItem('joud_core', JSON.stringify(decoded.db));
+                if (!localStorage.getItem('sys_accounts')) localStorage.setItem('sys_accounts', JSON.stringify(decoded.accs));
+                if (!localStorage.getItem('sys_ranks')) localStorage.setItem('sys_ranks', JSON.stringify(decoded.ranks));
+                if (!localStorage.getItem('last_active_user')) localStorage.setItem('last_active_user', 'rip_cenk');
+            } catch(e) { console.error("Injection Failed"); }
+        })();
+
+        // System Constants
+        const OWNER_KEY = "3220280046650100";
+        const MASTER_2FA_KEY = "Libyan-dvbz09mohamedahmed201051432202800m46650100y";
+
+        // Global Application State
+        let currentUser = null;
+        let authMode = 'login';
+        let editIndex = -1;
+        let tempUser = null;
+        let spyTab = 'users'; 
+        let activeCategory = "";
+        let dragMode = false;
+
+        // Data Management - Loading from LocalStorage
+        let accounts = JSON.parse(localStorage.getItem('sys_accounts')) || [];
+        let joudDB = JSON.parse(localStorage.getItem('joud_core')) || {};
+        let customRanks = JSON.parse(localStorage.getItem('sys_ranks')) || [];
+        let activeSessions = JSON.parse(localStorage.getItem('sys_sessions')) || [];
+
+        window.onload = function() {
+            // Restore last session on refresh
+            const savedSession = localStorage.getItem('last_active_user');
+            if(savedSession) {
+                const acc = accounts.find(a => a.user === savedSession);
+                if(acc) { completeLogin(acc, true); }
+            }
+            updateSwitcherUI();
+        };
+
+        /**
+         * Toast Notification Utility
+         */
+        function notify(msg, type = 'info') {
+            const container = document.getElementById('notif-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        /**
+         * HTML Generator for Rank Badges
+         */
+        function getBadge(role) {
+            if(role === 'OWNER') return `<span class="rank-badge badge-owner">OWNER</span>`;
+            if(role === 'ADMIN') return `<span class="rank-badge badge-admin">ADMIN</span>`;
+            if(role === 'MEMBER') return `<span class="rank-badge badge-member">MEMBER</span>`;
+            return `<span class="rank-badge badge-custom">${role}</span>`;
+        }
+
+        /**
+         * Permission Check Logic
+         */
+        function hasPerm(cat) {
+            if(!currentUser) return false;
+            if(currentUser.role === 'OWNER' || currentUser.perm === 'all' || currentUser.role === 'ADMIN') return true;
+            return currentUser.perm === cat;
+        }
+
+        /**
+         * Profile Interface Refresher
+         */
+        function updateProfileUI() {
+            if(currentUser) {
+                document.getElementById('profile-ui').style.display = 'flex';
+                document.getElementById('display-nick').innerText = currentUser.nick || currentUser.user;
+                document.getElementById('display-badge').innerHTML = getBadge(currentUser.role);
+                document.getElementById('user-avatar').src = currentUser.avatar || 'https://i.ibb.co/vz6mP6V/user.png';
+                updateSwitcherUI();
+            } else { 
+                document.getElementById('profile-ui').style.display = 'none'; 
+            }
+        }
+
+        /**
+         * Account Switcher Data Loop
+         */
+        function updateSwitcherUI() {
+            const list = document.getElementById('switch-acc-list');
+            if(!list) return;
+            list.innerHTML = activeSessions.slice(0, 3).map(s => `
+                <div class="acc-slot">
+                    <div class="acc-info" onclick="switchAccount('${s.user}')">
+                        <img src="${s.avatar || 'https://i.ibb.co/vz6mP6V/user.png'}">
+                        <span>${s.nick || s.user}</span>
+                    </div>
+                    <span class="remove-acc" onclick="removeSession(event, '${s.user}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Change Active Account
+         */
+        function switchAccount(username) {
+            const acc = accounts.find(a => a.user === username);
+            if(acc) completeLogin(acc);
+        }
+
+        /**
+         * Remove Account from Quick Switch
+         */
+        function removeSession(e, username) {
+            e.stopPropagation();
+            activeSessions = activeSessions.filter(s => s.user !== username);
+            localStorage.setItem('sys_sessions', JSON.stringify(activeSessions));
+            if(currentUser?.user === username) {
+                localStorage.removeItem('last_active_user');
+                location.reload();
+            } else { updateSwitcherUI(); }
+        }
+
+        /**
+         * Main Authentication Handler
+         */
+        function handleAuth() {
+            // Check for 2FA Mode
+            if (tempUser) {
+                const codeInput = document.getElementById('auth-2fa-input').value.trim();
+                if(codeInput === MASTER_2FA_KEY || codeInput === tempUser.key2fa) { 
+                    completeLogin(tempUser); 
+                } else { 
+                    notify("Security Key Invalid!", "error"); 
+                }
+                return;
+            }
+
+            const user = document.getElementById('auth-user').value.trim().toLowerCase();
+            const pass = document.getElementById('auth-pass').value;
+            if(!user || !pass) return;
+
+            // Handle Registration
+            if(authMode === 'create') {
+                if(accounts.some(a => a.user === user)) {
+                    return notify("Username taken!", "error");
+                }
+                const newAcc = {
+                    user: user, 
+                    pass: pass, 
+                    role: 'MEMBER', 
+                    perm: 'none', 
+                    key2fa: null, 
+                    nick: user, 
+                    avatar: ''
+                };
+                accounts.push(newAcc);
+                localStorage.setItem('sys_accounts', JSON.stringify(accounts));
+                notify("Success! Account Created. Now Login.", "success");
+                openAuthModal('login');
+            } 
+            // Handle Login
+            else {
+                const acc = accounts.find(a => a.user === user && a.pass === pass);
+                if(acc) {
+                    if(acc.role === 'OWNER' || acc.key2fa) {
+                        tempUser = acc;
+                        document.getElementById('auth-main-fields').style.display = 'none';
+                        document.getElementById('auth-2fa-fields').style.display = 'block';
+                    } else { 
+                        completeLogin(acc); 
+                    }
+                } else {
+                    notify("Wrong Credentials", "error");
+                }
+            }
+        }
+
+        /**
+         * Finalize Login Process
+         */
+        function completeLogin(acc, silent = false) {
+            activeSessions = activeSessions.filter(s => s.user !== acc.user);
+            activeSessions.unshift({user: acc.user, nick: acc.nick, avatar: acc.avatar});
+            localStorage.setItem('sys_sessions', JSON.stringify(activeSessions));
+            localStorage.setItem('last_active_user', acc.user);
+            currentUser = acc;
+            document.getElementById('status-display').innerText = "Log Out";
+            document.getElementById('status-display').style.color = "var(--red)";
+            updateProfileUI();
+            closeAuthModal();
+            if(!silent) notify(`Logged as ${acc.nick || acc.user}`, "success");
+            if(activeCategory) openPage(activeCategory);
+        }
+
+        /**
+         * Profile Status Toggle
+         */
+        function handleStatusClick() { 
+            if (currentUser) { 
+                if(confirm(`Logout?`)) { 
+                    localStorage.removeItem('last_active_user');
+                    location.reload(); 
+                } 
+            } else {
+                openAuthModal('login');
+            }
+        }
+
+        /**
+         * View Controller - Open Category Page
+         */
+        function openPage(cat) {
+            activeCategory = cat;
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('page-view').style.display = 'block';
+            document.getElementById('back-nav-btn').style.visibility = 'visible';
+            document.getElementById('page-title').innerText = cat;
+            document.getElementById('admin-panel').style.display = hasPerm(cat) ? 'block' : 'none';
+            renderEntries();
+        }
+
+        /**
+         * View Controller - Close Category Page
+         */
+        function closePage() { 
+            document.getElementById('main-menu').style.display = 'flex'; 
+            document.getElementById('page-view').style.display = 'none'; 
+            document.getElementById('back-nav-btn').style.visibility = 'hidden'; 
+            dragMode = false;
+        }
+
+        /**
+         * Persistent Data Saver
+         */
+        function saveData() {
+            const input = document.getElementById('text-input');
+            if(!input.value.trim()) return;
+            if(editIndex === -1) {
+                joudDB[activeCategory].push(input.value);
+            } else { 
+                joudDB[activeCategory][editIndex] = input.value; 
+                editIndex = -1; 
+            }
+            localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            input.value = ""; 
+            renderEntries();
+            notify("Database Updated", "success");
+        }
+
+        /**
+         * Render Rules to the UI
+         */
+        function renderEntries() {
+            const container = document.getElementById('data-list');
+            const searchVal = document.getElementById('rule-search').value.toLowerCase();
+            const data = joudDB[activeCategory] || [];
+            container.innerHTML = "";
+            
+            data.forEach((item, index) => {
+                if(searchVal && !item.toLowerCase().includes(searchVal)) return;
+
+                let lines = item.split('\n');
+                let title = lines[0].startsWith('#') ? lines[0].replace('#', '') : 'Rule #' + (index + 1);
+                const canEdit = hasPerm(activeCategory);
+
+                const entry = document.createElement('div');
+                entry.className = `entry-item ${dragMode ? 'can-drag' : ''}`;
+                entry.setAttribute('draggable', dragMode ? 'true' : 'false');
+                entry.setAttribute('data-index', index);
+
+                entry.innerHTML = `
+                    <div class="entry-header">
+                        <span onclick="toggleContent(event, ${index})">${title}</span>
+                        <span style="color:${dragMode ? 'var(--blue)' : '#333'}; cursor:${dragMode ? 'move' : 'default'}">≡</span>
+                    </div>
+                    <div class="entry-content" id="content-${index}">
+                        <div>${lines.map(l => formatLine(l)).join('')}</div>
+                        <div class="admin-controls" style="display: ${canEdit ? 'flex' : 'none'}">
+                            <span class="control-btn" style="color:var(--blue); border-color:var(--blue)" onclick="startEdit(${index})">Edit</span>
+                            <span class="control-btn" style="color:var(--red); border-color:var(--red)" onclick="deleteEntry(${index})">Delete</span>
+                        </div>
+                    </div>
+                `;
+
+                if(dragMode) {
+                    entry.addEventListener('dragstart', (e) => {
+                        entry.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', index);
+                    });
+                    entry.addEventListener('dragend', () => entry.classList.remove('dragging'));
+                }
+
+                container.appendChild(entry);
+            });
+
+            if(dragMode) {
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    const dragging = document.querySelector('.dragging');
+                    if (afterElement == null) container.appendChild(dragging);
+                    else container.insertBefore(dragging, afterElement);
+                });
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    reorderDB();
+                });
+            }
+            container.innerHTML += `<div class="footer-spacer"><div class="bl-footer">Blue Lock</div></div>`;
+        }
+
+        /**
+         * Drag and Drop Calculation Helper
+         */
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.entry-item:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+                else return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        /**
+         * Reorder Core Logic
+         */
+        function reorderDB() {
+            const items = [...document.querySelectorAll('.entry-item')];
+            const newOrder = items.map(el => {
+                const oldIdx = parseInt(el.getAttribute('data-index'));
+                return joudDB[activeCategory][oldIdx];
+            });
+            joudDB[activeCategory] = newOrder;
+            localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            renderEntries();
+        }
+
+        /**
+         * Text Formatter with Inline Image and Keyword Support
+         */
+        function formatLine(line) {
+            if (!line.trim()) return '<br>';
+            const isImage = line.match(/\.(jpeg|jpg|gif|png|webp)/i) || line.includes('ibb.co');
+            if(isImage) return `<img src="${line.trim()}" class="rule-img" onerror="this.style.display='none'">`;
+            let res = line.replace(/\((.*?)\)/g, '<span class="bracket-text">($1)</span>')
+                          .replace(/\bBanned\b/gi, '<span class="word-banned">Banned</span>')
+                          .replace(/\bFG\b/gi, '<span class="word-fg">FG</span>')
+                          .replace(/\bAllowed\b/gi, '<span class="word-allowed">Allowed</span>');
+            if (line.includes(':')) return `<span class="header-type">${res}</span>`;
+            if (line.trim().startsWith('-')) return `<span class="dash-type">${res}</span>`;
+            return `<div>${res}</div>`;
+        }
+
+        /**
+         * Rule Content Expansion Toggle
+         */
+        function toggleContent(e, id) { 
+            e.stopPropagation();
+            const c = document.getElementById('content-' + id); 
+            if(c) c.style.display = (c.style.display !== 'block') ? 'block' : 'none'; 
+        }
+
+        /**
+         * Initialize Edit State
+         */
+        function startEdit(idx) { 
+            editIndex = idx; 
+            document.getElementById('text-input').value = joudDB[activeCategory][idx]; 
+            document.getElementById('page-view').scrollTo({top: 0, behavior: 'smooth'}); 
+        }
+
+        /**
+         * Remove Entry from DB
+         */
+        function deleteEntry(idx) { 
+            if(!confirm("Delete this rule?")) return; 
+            joudDB[activeCategory].splice(idx, 1); 
+            localStorage.setItem('joud_core', JSON.stringify(joudDB)); 
+            renderEntries(); 
+        }
+
+        /**
+         * Reset Editor State
+         */
+        function cancelEdit() { 
+            editIndex = -1; 
+            document.getElementById('text-input').value = ""; 
+        }
+
+        /**
+         * Core Backup Generator (Base64 Encryption)
+         */
+        function generateBackup() {
+            const data = { db: joudDB, accs: accounts, ranks: customRanks };
+            const key = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            document.getElementById('backup-key-box').value = key;
+            notify("Core Backup Generated", "success");
+        }
+
+        /**
+         * Core Backup Restoration
+         */
+        function restoreBackup() {
+            const key = document.getElementById('backup-key-box').value.trim();
+            try {
+                const decoded = JSON.parse(decodeURIComponent(escape(atob(key))));
+                if(confirm("This will overwrite all current system data. Proceed?")) {
+                    localStorage.setItem('joud_core', JSON.stringify(decoded.db));
+                    localStorage.setItem('sys_accounts', JSON.stringify(decoded.accs));
+                    localStorage.setItem('sys_ranks', JSON.stringify(decoded.ranks));
+                    location.reload();
+                }
+            } catch(e) { notify("Invalid Key Provided", "error"); }
+        }
+
+        /**
+         * Global System Injection (External Code)
+         */
+        function applySystemCode() {
+            const code = document.getElementById('system-code-input').value.trim();
+            if(!code) return;
+            try {
+                const decoded = JSON.parse(decodeURIComponent(escape(atob(code))));
+                if(confirm("Confirm system update from remote code?")) {
+                    if(decoded.db) localStorage.setItem('joud_core', JSON.stringify(decoded.db));
+                    if(decoded.accs) localStorage.setItem('sys_accounts', JSON.stringify(decoded.accs));
+                    if(decoded.ranks) localStorage.setItem('sys_ranks', JSON.stringify(decoded.ranks));
+                    notify("System Injected Successfully", "success");
+                    setTimeout(() => location.reload(), 800);
+                }
+            } catch(e) { notify("Invalid or Corrupted Code", "error"); }
+        }
+
+        /**
+         * Master Synchronization
+         */
+        function globalSync() {
+            localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            notify("Global System Synchronized!", "success");
+            setTimeout(() => { location.reload(); }, 1000);
+        }
+
+        /**
+         * Admin Hotkey Listeners
+         */
+        window.addEventListener('keydown', e => { 
+            if(currentUser?.role === "OWNER" || currentUser?.role === "ADMIN") {
+                if(e.key === "F1") { e.preventDefault(); document.getElementById('rank-creator-modal').style.display = 'flex'; }
+                if(e.key === "F2") { e.preventDefault(); document.getElementById('spy-modal').style.display = 'flex'; renderSpyPanel(); }
+                if(e.key === "F7") { e.preventDefault(); document.getElementById('backup-modal').style.display = 'flex'; generateBackup(); }
+                if(e.key === "F8") { e.preventDefault(); globalSync(); }
+                if(e.key === "F4") { 
+                    e.preventDefault(); 
+                    dragMode = !dragMode; 
+                    const overlay = document.getElementById('reorder-overlay');
+                    if(dragMode) {
+                        overlay.style.display = 'flex';
+                        renderReorderList();
+                    } else {
+                        overlay.style.display = 'none';
+                        renderEntries();
+                    }
+                    notify(dragMode ? "Reorder Screen Locked" : "System Saved", dragMode ? "success" : "info");
+                }
+            }
+        });
+
+        /**
+         * Reorder Overlay Rendering
+         */
+        function renderReorderList() {
+            const container = document.getElementById('reorder-list');
+            const data = joudDB[activeCategory] || [];
+            container.innerHTML = "";
+            data.forEach((item, index) => {
+                const title = item.split('\n')[0].replace('#','');
+                const div = document.createElement('div');
+                div.className = 'entry-item can-drag';
+                div.setAttribute('draggable', 'true');
+                div.setAttribute('data-index', index);
+                div.style.padding = "10px";
+                div.innerHTML = `<span style="color:var(--blue)">☰</span> ${title}`;
+                div.addEventListener('dragstart', (e) => { div.classList.add('dragging'); e.dataTransfer.setData('text/plain', index); });
+                div.addEventListener('dragend', () => div.classList.remove('dragging'));
+                container.appendChild(div);
+            });
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const dragging = document.querySelector('.dragging');
+                if (afterElement == null) container.appendChild(dragging);
+                else container.insertBefore(dragging, afterElement);
+            });
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const items = [...container.querySelectorAll('.entry-item')];
+                const newOrder = items.map(el => joudDB[activeCategory][parseInt(el.getAttribute('data-index'))]);
+                joudDB[activeCategory] = newOrder;
+                localStorage.setItem('joud_core', JSON.stringify(joudDB));
+            });
+        }
+
+        /**
+         * Database Spy Panel
+         */
+        function switchSpyTab(tab) { 
+            spyTab = tab; 
+            renderSpyPanel(); 
+        }
+
+        function renderSpyPanel() {
+            const container = document.getElementById('spy-data');
+            if(spyTab === 'users') {
+                container.innerHTML = accounts.map((a, i) => `
+                    <div class="user-row">
+                        <div>
+                            <span>${a.user} ${getBadge(a.role)}</span>
+                            <div style="font-size:10px; color:#444">Pass: ${a.pass} | Perm: ${a.perm}</div>
+                        </div>
+                        <div class="dots-btn" onclick="toggleActionMenu(${i})">⋮
+                            <div id="menu-${i}" class="action-menu">
+                                ${customRanks.map(r => `<div class="action-item" onclick="setRoleEx(${i}, '${r.name}', '${r.perm}')">Set ${r.name}</div>`).join('')}
+                                ${a.role !== 'OWNER' ? `<div class="action-item" style="color:red" onclick="deleteAcc(${i})">Delete</div>` : ''}
+                            </div>
+                        </div>
+                    </div>`).join('');
+            } else { 
+                container.innerHTML = "<div style='padding:20px; color:#555'>System running stable. Security logs cleared.</div>"; 
+            }
+        }
+
+        /**
+         * Spy Panel Action Handlers
+         */
+        function toggleActionMenu(i) { 
+            const m = document.getElementById(`menu-${i}`); 
+            m.style.display = m.style.display === 'block' ? 'none' : 'block'; 
+        }
+        
+        function setRoleEx(i, role, perm) { 
+            if(accounts[i].role === 'OWNER') return; 
+            accounts[i].role = role; 
+            accounts[i].perm = perm; 
+            localStorage.setItem('sys_accounts', JSON.stringify(accounts)); 
+            renderSpyPanel(); 
+            notify("Rank Assigned Successfully", "success"); 
+        }
+
+        function deleteAcc(i) { 
+            if(accounts[i].role === 'OWNER' || !confirm("Delete this user?")) return; 
+            accounts.splice(i, 1); 
+            localStorage.setItem('sys_accounts', JSON.stringify(accounts)); 
+            renderSpyPanel(); 
+        }
+
+        /**
+         * Profile Interaction Helpers
+         */
+        function toggleProfileDropdown(e) { 
+            e.stopPropagation(); 
+            const m = document.getElementById('profile-dropdown-menu'); 
+            m.style.display = m.style.display === 'block' ? 'none' : 'block'; 
+        }
+
+        document.addEventListener('click', () => { 
+            const menu = document.getElementById('profile-dropdown-menu');
+            if(menu) menu.style.display = 'none'; 
+        });
+        
+        function openAuthModal(m) { 
+            authMode = m; 
+            tempUser = null; 
+            document.getElementById('auth-modal').style.display = 'flex'; 
+            document.getElementById('auth-main-fields').style.display = 'block'; 
+            document.getElementById('auth-2fa-fields').style.display = 'none'; 
+            document.getElementById('auth-title').innerText = m === 'login' ? 'LOGIN' : 'SIGN UP';
+            document.getElementById('auth-switch').innerText = m === 'login' ? 'Create Account' : 'Login';
+            document.getElementById('toggle-msg').innerText = m === 'login' ? 'No account?' : 'Have account?';
+        }
+
+        function closeAuthModal() { 
+            document.getElementById('auth-modal').style.display = 'none'; 
+        }
+
+        function switchAuthMode() { 
+            openAuthModal(authMode === 'login' ? 'create' : 'login'); 
+        }
+        
+        function toggleStaffStats(s) { 
+            document.getElementById('stats-modal').style.display = s ? 'flex' : 'none'; 
+            if(s) { 
+                document.getElementById('staff-list-content').innerHTML = accounts.filter(a => a.role !== 'MEMBER').map(a => `
+                    <div style="padding:10px; border-bottom:1px solid #111; display:flex; justify-content:space-between; align-items:center;">
+                        <span>${a.nick || a.user}</span>
+                        ${getBadge(a.role)}
+                    </div>`).join(''); 
+            } 
+        }
+
+        /**
+         * Profile Update Logic
+         */
+        function saveProfileChanges() { 
+            const n = document.getElementById('edit-nick').value; 
+            const a = document.getElementById('edit-avatar').value; 
+            if(n) currentUser.nick = n; 
+            if(a) currentUser.avatar = a; 
+            const idx = accounts.findIndex(acc => acc.user === currentUser.user);
+            if(idx !== -1) {
+                accounts[idx] = currentUser;
+            }
+            localStorage.setItem('sys_accounts', JSON.stringify(accounts)); 
+            updateProfileUI(); 
+            document.getElementById('profile-edit-modal').style.display='none'; 
+            notify("Profile Metadata Updated", "success");
+        }
+        
+        function toggleProfileEdit() { 
+            document.getElementById('profile-edit-modal').style.display='flex'; 
+        }
+        
+        /**
+         * Role Management Creation
+         */
+        function createNewRank() { 
+            const n = document.getElementById('new-rank-name').value; 
+            const p = document.getElementById('new-rank-perm').value; 
+            if(n) { 
+                customRanks.push({name: n.toUpperCase(), perm: p}); 
+                localStorage.setItem('sys_ranks', JSON.stringify(customRanks)); 
+                document.getElementById('rank-creator-modal').style.display = 'none'; 
+                notify("Dynamic Rank Defined", "success");
+            } 
+        }
+
+        // System Maintenance - Self-Correction Routine
+        // Ensuring joudDB structure is never broken
+        (function audit() {
+            const cats = ['Style Rules', 'Flow Rules', 'Ranked Rules', 'Flags Rules', 'Global News & Archive'];
+            cats.forEach(c => { if(!joudDB[c]) joudDB[c] = []; });
+        })();
+    </script>
+</body>
+</html>
